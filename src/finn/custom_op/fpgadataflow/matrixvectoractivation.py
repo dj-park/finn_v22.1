@@ -721,10 +721,12 @@ class MatrixVectorActivation(HLSCustomOp):
         if self.get_weight_datatype() == DataType["BIPOLAR"]:
             export_wdt = DataType["BINARY"]
         if weight_file_mode == "hls_header":
+            print("before np to hls code")
             weight_hls_code = numpy_to_hls_code(
                 weight_tensor, export_wdt, "weights", True, True
             )
             # write weights into C++ header file as dictated by finn-hlslib
+            print("after np to hls code")
             f_weights = open(weight_file_name, "w")
             if export_wdt.bitwidth() != 1:
                 f_weights.write(
@@ -744,6 +746,8 @@ class MatrixVectorActivation(HLSCustomOp):
                     )
                 )
             f_weights.write(weight_hls_code)
+            print("write?")
+
             f_weights.close()
         elif "decoupled" in weight_file_mode:
             # create a weight stream for various flavors of decoupled mode:
@@ -814,11 +818,15 @@ class MatrixVectorActivation(HLSCustomOp):
         mem_mode = self.get_nodeattr("mem_mode")
         code_gen_dir = path
         # weights, if not external
+        print("before get_init?")
         weights = model.get_initializer(self.onnx_node.input[1])
+
         if mem_mode == "const":
             # save hlslib-compatible weights in params.h
             weight_filename = "{}/params.h".format(code_gen_dir)
+            print("before weight gen")
             self.make_weight_file(weights, "hls_header", weight_filename)
+            print("after weight gen")
         elif mem_mode == "decoupled" or mem_mode == "external":
             weight_filename_sim = "{}/weights.npy".format(code_gen_dir)
             # save decoupled weights for cppsim
@@ -1041,11 +1049,11 @@ class MatrixVectorActivation(HLSCustomOp):
             assert condition, msg
         mem_mode = self.get_nodeattr("mem_mode")
         numInputVectors = list(self.get_nodeattr("numInputVectors"))
+        print("numInputVectors: ")
+        print(numInputVectors)
         numReps = np.prod(numInputVectors)
         self.code_gen_dict["$DEFINES$"] = [
-            """#define MW1 {}\n #define MH1 {}\n
-            #define SIMD1 {}\n #define PE1 {}\n #define WMEM1 {}\n
-            #define TMEM1 {}\n #define numReps {}""".format(
+            "#define MW1 {}\n#define MH1 {}\n#define SIMD1 {}\n#define PE1 {}\n#define WMEM1 {}\n#define TMEM1 {}\n#define numReps {}".format(
                 self.get_nodeattr("MW"),
                 self.get_nodeattr("MH"),
                 self.get_nodeattr("SIMD"),
@@ -1227,15 +1235,25 @@ class MatrixVectorActivation(HLSCustomOp):
     def pragmas(self):
         mem_mode = self.get_nodeattr("mem_mode")
         ram_style_thresholds = self.get_nodeattr("ram_style_thresholds")
+        # self.code_gen_dict["$PRAGMAS$"] = [
+        #     "#pragma HLS INTERFACE axis port=in0 name=in0_" + self.hls_sname()
+        # ]
+        # self.code_gen_dict["$PRAGMAS$"].append(
+        #     "#pragma HLS INTERFACE axis port=out name=out_" + self.hls_sname()
+        # )
+        # self.code_gen_dict["$PRAGMAS$"].append(
+        #     "#pragma HLS INTERFACE ap_ctrl_none port=return"
+        # )
         self.code_gen_dict["$PRAGMAS$"] = [
-            "#pragma HLS INTERFACE axis port=in0 name=in0_" + self.hls_sname()
+            "#pragma HLS INTERFACE axis register port=in0"
         ]
         self.code_gen_dict["$PRAGMAS$"].append(
-            "#pragma HLS INTERFACE axis port=out name=out_" + self.hls_sname()
+            "#pragma HLS INTERFACE axis register port=out"
         )
-        self.code_gen_dict["$PRAGMAS$"].append(
-            "#pragma HLS INTERFACE ap_ctrl_none port=return"
-        )
+        # self.code_gen_dict["$PRAGMAS$"].append(
+        #     "#pragma HLS INTERFACE ap_ctrl_none port=return"
+        # )
+
 
         if mem_mode == "const":
             self.code_gen_dict["$PRAGMAS$"].append('#include "params.h"')

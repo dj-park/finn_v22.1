@@ -218,9 +218,7 @@ class StreamingMaxPool_Batch(HLSCustomOp):
 
         if self.is_1d():
             self.code_gen_dict["$DEFINES$"] = [
-                """#define ImgDim {}\n #define PoolDim {}\n
-                #define NumChannels {}\n #define PE {}\n #define OutputSize {}
-                \n #define numReps {}""".format(
+                """#define ImgDim {}\n#define PoolDim {}\n#define NumChannels {}\n#define PE {}\n#define OutputSize {}\n#define numReps {}""".format(
                     ifm_dim[1],
                     k[1],
                     self.get_nodeattr("NumChannels"),
@@ -231,8 +229,7 @@ class StreamingMaxPool_Batch(HLSCustomOp):
             ]
         else:
             self.code_gen_dict["$DEFINES$"] = [
-                """#define ImgDim {}\n #define PoolDim {}\n
-                #define NumChannels {}\n #define numReps {}""".format(
+                """#define ImgDim {}\n#define PoolDim {}\n#define NumChannels {}\n#define numReps {}""".format(
                     ifm_dim[1],
                     k[1],
                     self.get_nodeattr("NumChannels"),
@@ -329,20 +326,30 @@ class StreamingMaxPool_Batch(HLSCustomOp):
         packed_bits = self.get_instream_width()
         packed_hls_type = "ap_uint<%d>" % packed_bits
         self.code_gen_dict["$BLACKBOXFUNCTION$"] = [
-            "void %s(hls::stream<%s > &in0, hls::stream<%s > &out)"
+            """void %s(hls::stream<%s> &in0, 
+                       hls::stream<%s> &out)"""
             % (self.onnx_node.name, packed_hls_type, packed_hls_type)
         ]
 
     def pragmas(self):
+        # self.code_gen_dict["$PRAGMAS$"] = [
+        #     "#pragma HLS INTERFACE axis port=in0 name=in0_" + self.hls_sname()
+        # ]
+        # self.code_gen_dict["$PRAGMAS$"].append(
+        #     "#pragma HLS INTERFACE axis port=out name=out_" + self.hls_sname()
+        # )
+        # self.code_gen_dict["$PRAGMAS$"].append(
+        #     "#pragma HLS INTERFACE ap_ctrl_none port=return"
+        # )
         self.code_gen_dict["$PRAGMAS$"] = [
-            "#pragma HLS INTERFACE axis port=in0 name=in0_" + self.hls_sname()
+            "#pragma HLS INTERFACE axis register port=in0"
         ]
         self.code_gen_dict["$PRAGMAS$"].append(
-            "#pragma HLS INTERFACE axis port=out name=out_" + self.hls_sname()
+            "#pragma HLS INTERFACE axis register port=out"
         )
-        self.code_gen_dict["$PRAGMAS$"].append(
-            "#pragma HLS INTERFACE ap_ctrl_none port=return"
-        )
+        # self.code_gen_dict["$PRAGMAS$"].append(
+        #     "#pragma HLS INTERFACE ap_ctrl_none port=return"
+        # )
 
     def execute_node(self, context, graph):
         mode = self.get_nodeattr("exec_mode")

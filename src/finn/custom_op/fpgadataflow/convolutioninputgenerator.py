@@ -379,10 +379,7 @@ class ConvolutionInputGenerator(HLSCustomOp):
         ifm_precision = self.get_input_datatype().bitwidth()
 
         self.code_gen_dict["$DEFINES$"] = [
-            """#define ConvKernelDim1 {}\n #define IFMChannels1 {}\n
-            #define Input_precision1 {}\n #define IFMDim1 {}\n
-            #define OFMDim1 {}\n #define SIMD1 {}\n
-            #define Stride1 {}\n #define numReps {}""".format(
+            """#define ConvKernelDim1 {}\n#define IFMChannels1 {}\n#define Input_precision1 {}\n#define IFMDim1 {}\n#define OFMDim1 {}\n#define SIMD1 {}\n#define Stride1 {}\n#define numReps {}""".format(
                 k, ifm_ch, ifm_precision, ifm_dim, ofm_dim, simd, stride, numReps
             )
         ]
@@ -487,12 +484,22 @@ class ConvolutionInputGenerator(HLSCustomOp):
         ]
 
     def pragmas(self):
+        # self.code_gen_dict["$PRAGMAS$"] = [
+        #     "#pragma HLS INTERFACE axis port=in0 name=in0_" + self.hls_sname()
+        # ]
+        # self.code_gen_dict["$PRAGMAS$"].append(
+        #     "#pragma HLS INTERFACE axis port=out name=out_" + self.hls_sname()
+        # )
+        # self.code_gen_dict["$PRAGMAS$"].append(
+        #     "#pragma HLS INTERFACE ap_ctrl_none port=return"
+        # )
         self.code_gen_dict["$PRAGMAS$"] = [
-            "#pragma HLS INTERFACE axis port=in0 name=in0_" + self.hls_sname()
+            "#pragma HLS INTERFACE axis register port=in0"
         ]
         self.code_gen_dict["$PRAGMAS$"].append(
-            "#pragma HLS INTERFACE axis port=out name=out_" + self.hls_sname()
+            "#pragma HLS INTERFACE axis register port=out"
         )
-        self.code_gen_dict["$PRAGMAS$"].append(
-            "#pragma HLS INTERFACE ap_ctrl_none port=return"
-        )
+        # self.code_gen_dict["$PRAGMAS$"].append(
+        #     "#pragma HLS INTERFACE ap_ctrl_none port=return"
+        # )
+

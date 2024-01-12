@@ -523,14 +523,7 @@ class ConvolutionInputGenerator1D(HLSCustomOp):
         ]:
             self.code_gen_dict["$DEFINES$"] = [
                 """
-            #define ConvKernelDim1_x {}\n
-            #define IFMChannels1 {}\n
-            #define Input_precision1 {}\n
-            #define IFMDim1_x {}\n
-            #define OFMDim1_x {}\n
-            #define Stride1_x {}\n
-            #define SIMD1 {}\n
-            #define numReps {}
+            #define ConvKernelDim1_x {}\n#define IFMChannels1 {}\n#define Input_precision1 {}\n#define IFMDim1_x {}\n#define OFMDim1_x {}\n#define Stride1_x {}\n#define SIMD1 {}\n#define numReps {}
             """.format(
                     k_w,
                     ifm_ch,
@@ -545,13 +538,7 @@ class ConvolutionInputGenerator1D(HLSCustomOp):
         if swu_variant == "ConvolutionInputGenerator_1D_dws":
             self.code_gen_dict["$DEFINES$"] = [
                 """
-            #define ConvKernelDim1_x {}\n
-            #define IFMChannels1 {}\n
-            #define Input_precision1 {}\n
-            #define IFMDim1_x {}\n
-            #define OFMDim1_x {}\n
-            #define SIMD1 {}\n
-            #define numReps {}
+            #define ConvKernelDim1_x {}\n#define IFMChannels1 {}\n#define Input_precision1 {}\n#define IFMDim1_x {}\n#define OFMDim1_x {}\n#define SIMD1 {}\n#define numReps {}
             """.format(
                     k_w,
                     ifm_ch,
@@ -565,15 +552,7 @@ class ConvolutionInputGenerator1D(HLSCustomOp):
         if swu_variant == "ConvolutionInputGenerator_1D_dws_naive":
             self.code_gen_dict["$DEFINES$"] = [
                 """
-            #define ConvKernelDim1_x {}\n
-            #define IFMChannels1 {}\n
-            #define Input_precision1 {}\n
-            #define IFMDim1_x {}\n
-            #define OFMDim1_x {}\n
-            #define Stride1_x {}\n
-            #define Dilation1_x {}\n
-            #define SIMD1 {}\n
-            #define numReps {}
+            #define ConvKernelDim1_x {}\n#define IFMChannels1 {}\n#define Input_precision1 {}\n#define IFMDim1_x {}\n#define OFMDim1_x {}\n#define Stride1_x {}\n#define Dilation1_x {}\n#define SIMD1 {}\n#define numReps {}
             """.format(
                     k_w,
                     ifm_ch,
@@ -723,12 +702,21 @@ class ConvolutionInputGenerator1D(HLSCustomOp):
             ]
 
     def pragmas(self):
+        # self.code_gen_dict["$PRAGMAS$"] = [
+        #     "#pragma HLS INTERFACE axis port=in0 name=in0_" + self.hls_sname()
+        # ]
+        # self.code_gen_dict["$PRAGMAS$"].append(
+        #     "#pragma HLS INTERFACE axis port=out name=out_" + self.hls_sname()
+        # )
+        # self.code_gen_dict["$PRAGMAS$"].append(
+        #     "#pragma HLS INTERFACE ap_ctrl_none port=return"
+        # )
         self.code_gen_dict["$PRAGMAS$"] = [
-            "#pragma HLS INTERFACE axis port=in0 name=in0_" + self.hls_sname()
+            "#pragma HLS INTERFACE axis register port=in0"
         ]
         self.code_gen_dict["$PRAGMAS$"].append(
-            "#pragma HLS INTERFACE axis port=out name=out_" + self.hls_sname()
+            "#pragma HLS INTERFACE axis register port=out"
         )
-        self.code_gen_dict["$PRAGMAS$"].append(
-            "#pragma HLS INTERFACE ap_ctrl_none port=return"
-        )
+        # self.code_gen_dict["$PRAGMAS$"].append(
+        #     "#pragma HLS INTERFACE ap_ctrl_none port=return"
+        # )

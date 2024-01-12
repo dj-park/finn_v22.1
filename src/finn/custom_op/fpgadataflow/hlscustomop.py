@@ -284,18 +284,25 @@ class HLSCustomOp(CustomOp):
         """Generates c++ code and tcl script for ip generation."""
         node = self.onnx_node
 
+        print("step1")
         # generate top cpp file for ip generation
         path = self.get_nodeattr("code_gen_dir_ipgen")
         self.code_gen_dict["$AP_INT_MAX_W$"] = [str(self.get_ap_int_max_w())]
+        print("step1-1")
         self.generate_params(model, path)
+        print("step1-2")
         self.global_includes()
+        print("step1-3")
         self.defines("ipgen")
+        print("step1-4")
         self.blackboxfunction()
+        print("step1-5")
         self.pragmas()
+        print("step1-6")
         self.docompute()
 
         template = self.ipgen_template
-
+        print("step2")
         for key in self.code_gen_dict:
             # transform list into long string separated by '\n'
             code_gen_line = "\n".join(self.code_gen_dict[key])
@@ -305,7 +312,7 @@ class HLSCustomOp(CustomOp):
         f.write(template)
         f.close()
         self.code_gen_dict.clear()
-
+        print("step3")
         # generate tcl script for ip generation
         self.code_gen_dict["$PROJECTNAME$"] = ["project_{}".format(node.name)]
         self.code_gen_dict["$HWSRCDIR$"] = [code_gen_dir]
@@ -316,7 +323,7 @@ class HLSCustomOp(CustomOp):
         self.code_gen_dict["$EXTRA_DIRECTIVES$"] = self.ipgen_extra_directives()
 
         template = self.ipgentcl_template
-
+        print("step4")
         for key in self.code_gen_dict:
             # transform list into long string separated by '\n'
             code_gen_line = "\n".join(self.code_gen_dict[key])
@@ -335,7 +342,7 @@ class HLSCustomOp(CustomOp):
             "config_compile -disable_unroll_code_size_check -pipeline_style flp",
             "config_interface -m_axi_addr64",
             "config_rtl -module_auto_prefix",
-            "config_rtl -deadlock_detection none",
+            # "config_rtl -deadlock_detection none",
         ]
         return default_directives
 
@@ -350,17 +357,17 @@ class HLSCustomOp(CustomOp):
         builder = CallHLS()
         builder.append_tcl(code_gen_dir + "/hls_syn_{}.tcl".format(node.name))
         builder.set_ipgen_path(code_gen_dir + "/project_{}".format(node.name))
-        builder.build(code_gen_dir)
-        ipgen_path = builder.ipgen_path
-        assert os.path.isdir(ipgen_path), "IPGen failed: %s not found" % (ipgen_path)
-        self.set_nodeattr("ipgen_path", ipgen_path)
-        ip_path = ipgen_path + "/sol1/impl/ip"
-        assert os.path.isdir(
-            ip_path
-        ), "IPGen failed: %s not found. Check log under %s" % (ip_path, code_gen_dir)
-        self.set_nodeattr("ip_path", ip_path)
-        vlnv = "xilinx.com:hls:%s:1.0" % node.name
-        self.set_nodeattr("ip_vlnv", vlnv)
+        # builder.build(code_gen_dir) # DJP: Don't build
+        # ipgen_path = builder.ipgen_path
+        # assert os.path.isdir(ipgen_path), "IPGen failed: %s not found" % (ipgen_path)
+        # self.set_nodeattr("ipgen_path", ipgen_path)
+        # ip_path = ipgen_path + "/sol1/impl/ip"
+        # assert os.path.isdir(
+        #     ip_path
+        # ), "IPGen failed: %s not found. Check log under %s" % (ip_path, code_gen_dir)
+        # self.set_nodeattr("ip_path", ip_path)
+        # vlnv = "xilinx.com:hls:%s:1.0" % node.name
+        # self.set_nodeattr("ip_vlnv", vlnv)
 
     def code_generation_cppsim(self, model):
         """Generates c++ code for simulation (cppsim)."""

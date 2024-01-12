@@ -604,11 +604,13 @@ class Thresholding_Batch(HLSCustomOp):
     def defines(self, var):
         numReps = 1
         numInputVectors = list(self.get_nodeattr("numInputVectors"))
+        print("numInputVectors: ")
+        print(numInputVectors)
+
         total_spatial_size = int(np.prod(numInputVectors))
 
         self.code_gen_dict["$DEFINES$"] = [
-            """#define NumChannels1 {}\n #define PE1 {}\n #define numReps {}\n
-               #define ImgDim1 {}""".format(
+            """#define NumChannels1 {}\n#define PE1 {}\n#define numReps {}\n#define ImgDim1 {}""".format(
                 self.get_nodeattr("NumChannels"),
                 self.get_nodeattr("PE"),
                 numReps,
@@ -759,15 +761,24 @@ class Thresholding_Batch(HLSCustomOp):
             raise Exception("Unrecognized mem_mode")
 
     def pragmas(self):
+        # self.code_gen_dict["$PRAGMAS$"] = [
+        #     "#pragma HLS INTERFACE axis port=in0 name=in0_" + self.hls_sname()
+        # ]
+        # self.code_gen_dict["$PRAGMAS$"].append(
+        #     "#pragma HLS INTERFACE axis port=out name=out_" + self.hls_sname()
+        # )
+        # self.code_gen_dict["$PRAGMAS$"].append(
+        #     "#pragma HLS INTERFACE ap_ctrl_none port=return"
+        # )
         self.code_gen_dict["$PRAGMAS$"] = [
-            "#pragma HLS INTERFACE axis port=in0 name=in0_" + self.hls_sname()
+            "#pragma HLS INTERFACE axis register port=in0"
         ]
         self.code_gen_dict["$PRAGMAS$"].append(
-            "#pragma HLS INTERFACE axis port=out name=out_" + self.hls_sname()
+            "#pragma HLS INTERFACE axis register port=out"
         )
-        self.code_gen_dict["$PRAGMAS$"].append(
-            "#pragma HLS INTERFACE ap_ctrl_none port=return"
-        )
+        # self.code_gen_dict["$PRAGMAS$"].append(
+        #     "#pragma HLS INTERFACE ap_ctrl_none port=return"
+        # )
 
         if self.get_nodeattr("mem_mode") == "const":
             # the threshold tensor is acc_type [PE][TMEM][N_THRES]
